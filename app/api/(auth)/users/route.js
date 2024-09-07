@@ -83,13 +83,10 @@ export const PATCH = async (request) => {
 		const body = await request.json();
 		const { userId, newUsername } = body;
 
-
-		console.log("above username and id validation")
 		// no username and userID
 		if (!userId && !newUsername)
 			return new NextResponse(JSON.stringify({ message: "No userID or username found" }), { status: 400 })
 
-		console.log("above id validation")
 		// valid userID
 		if (!Types.ObjectId.isValid(userId))
 			return new NextResponse(JSON.stringify({ message: "Invaid userID" }), { status: 400 })
@@ -101,10 +98,9 @@ export const PATCH = async (request) => {
 			{ username: newUsername },
 			{ new: true }
 		);
-		console.log("above user finding")
+
 		if (!updatedUser)
 			return new NextResponse(JSON.stringify({ message: "User not found in database" }), { status: 400 })
-
 
 		return new NextResponse(JSON.stringify({ message: "User updated successfully", user: updatedUser }), { status: 200 })
 
@@ -114,7 +110,34 @@ export const PATCH = async (request) => {
 	}
 }
 
+export const DELETE = async (request) => {
+	try {
+		const { searchParams } = new URL(request.url);
+		const userId = searchParams.get('userId');
 
+		// no username and userID
+		if (!userId)
+			return new NextResponse(JSON.stringify({ message: "No userID found" }), { status: 400 })
+
+		// valid userID
+		if (!Types.ObjectId.isValid(userId))
+			return new NextResponse(JSON.stringify({ message: "Invaid userID" }), { status: 400 })
+
+
+		await connect();
+		const deletedUser = await User.findByIdAndDelete(
+			new ObjectId(userId)
+		);
+
+		if (!deletedUser)
+			return new NextResponse(JSON.stringify({ message: "User not found in database" }), { status: 400 })
+
+		return new NextResponse(JSON.stringify({ message: "User deleted successfully", user: deletedUser }), { status: 200 })
+
+	} catch (error) {
+		return new NextResponse("Error in deleting the user, " + err.message, { status: 500 })
+	}
+}
 
 
 
